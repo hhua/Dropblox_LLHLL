@@ -113,8 +113,10 @@ class Block(object):
     self.rotation = 0
 
   def same_shape(self,other):
+	if self.type != other.type:
+		return False
 	for i in xrange(len(self.offsets)):
-		if self.offsets[i]!=other.offsets[i]:
+		if self.offsets[i].i!=other.offsets[i].i and self.offsets[i].j!= other.offsets[i].j:
 			return False
 	return True
 	
