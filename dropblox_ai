@@ -6,6 +6,7 @@
 import json
 import sys
 import time
+import copy
 
 class InvalidMoveError(ValueError):
   pass
@@ -187,6 +188,58 @@ class Board(object):
       return None
     return Board(new_bitmap, self.preview[0], self.preview[1:])
 
+  #
+  #
+  #
+  #
+  def finalPosition(self, block):
+    block.rotate()
+    block1 = copy.deepcopy(block)
+    block.rotate()
+    block2 = copy.deepcopy(block)
+    block.rotate()
+    block3 = copy.deepcopy(block)
+    block.rotate() # return to the original phase
+    block_phase = [block, block1, block2, block3] # four phases for each block
+    
+    result_list=[] # return result block list
+    for block_base in block_phase: # for each block phase
+      x_min = self.getStartXMin(block_base)
+      x_max = self.getStartXMax(block_base)
+      y = self.getStartY(block_base)
+      for x_value in range(x_min, x_max + 1):
+        for y_value in range(0, y + 1):
+          tmp_y = y - y_value
+          block_base.center.i = tmp_y
+          block_base.center.j = x_value
+          if self.check(block_base):
+            block_tmp = copy.deepcopy(block_base)
+            result_list.append(block_tmp)
+            break # get the deepest possible block
+    print result_list
+    return result_list
+
+  def getStartXMin(self, block):
+    x = block.offsets[0].j;
+    for tmp in range(1,4):
+      if x > block.offsets[tmp].j:
+        x = block.offsets[tmp].j
+    return 0 - x
+
+  def getStartXMax(self, block):
+    x = block.offsets[0].j;
+    for tmp in range(1,4):
+      if x < block.offsets[tmp].j:
+        x = block.offsets[tmp].j
+    return 11 - x
+
+  def getStartY(self, block):
+    y = block.offsets[0].i;
+    for tmp in range(1,4):
+      if y < block.offsets[tmp].i:
+        y = block.offsets[tmp].i
+    return 32 - y
+
   # A helper method used to remove any full rows from a bitmap. Returns the new bitmap.
   @staticmethod
   def remove_rows(bitmap):
@@ -205,6 +258,9 @@ if __name__ == '__main__':
 
     # current block
     block = board.block
+
+    # get final possible positions
+    board.finalPosition(block)
 
     # very simple AI that moves the current block as far left as possible
     moves = []                  # list of moves to make
