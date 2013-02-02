@@ -112,6 +112,12 @@ class Block(object):
     (self.translation.i, self.translation.j) = (0, 0)
     self.rotation = 0
 
+  def same_shape(self,other):
+	for i in xrange(len(self.offsets)):
+		if self.offsets[i]!=other.offsets[i]:
+			return False
+	return True
+
 # A class representing a board state. Stores the current block and the
 # preview list and handles commands.
 class Board(object):
@@ -193,6 +199,24 @@ class Board(object):
     (rows, cols) = (len(bitmap), len(bitmap[0]))
     new_bitmap = [row for row in bitmap if not all(row)]
     return [cols*[0] for i in range(rows - len(new_bitmap))] + new_bitmap
+
+  def calculate_commands(originBlock,descBlock):
+	sum=0
+	commands=[]
+	while not originBlock.same_shape(descBlock):	
+		originBlock = originBlock.rotate
+		commands.append('rotate')
+	count = abs(originBlock.center.j-descBlock.j)
+	# direction = (originBlock.center.j>descBlock.j)?'left':'right'
+	direction = 'left' if (originBlock.center.j>descBlock.j) else 'right'	
+	commands = appendLeftRight(commands,direction,count)
+	commands.append('drop')
+	return commands
+	
+  def appendLeftRight(commands,direction,count):
+	for i in xrange(count):
+		commands.append(direction)
+	return commands
 
 if __name__ == '__main__':
   if len(sys.argv) == 3:
