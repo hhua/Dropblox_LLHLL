@@ -113,6 +113,17 @@ class Block(object):
     (self.translation.i, self.translation.j) = (0, 0)
     self.rotation = 0
 
+  def same_shape(self,other):
+	if self.type != other.type:
+		return False
+	for i in xrange(len(self.offsets)):
+		if self.offsets[i].i!=other.offsets[i].i and self.offsets[i].j!= other.offsets[i].j:
+			return False
+	return True
+
+  def same_center(self,other):
+	return self.center.i==other.center.i and self.center.j==other.center.j
+
 # A class representing a board state. Stores the current block and the
 # preview list and handles commands.
 class Board(object):
@@ -246,6 +257,58 @@ class Board(object):
     (rows, cols) = (len(bitmap), len(bitmap[0]))
     new_bitmap = [row for row in bitmap if not all(row)]
     return [cols*[0] for i in range(rows - len(new_bitmap))] + new_bitmap
+
+  def calculate_commands(originBlock,descBlock):
+	commands=[]
+	while not originBlock.same_shape(descBlock):	
+		originBlock = originBlock.rotate
+		commands.append('rotate')
+	count = abs(originBlock.center.j-descBlock.j)
+	# direction = (originBlock.center.j>descBlock.j)?'left':'right'
+	direction = 'left' if (originBlock.center.j>descBlock.j) else 'right'	
+	commands = append_left_right(commands,direction,count)
+	commands.append('drop')
+	return commands
+
+  def calculate_commands_complex(originBlock,descBlock):
+	commands=[]
+	while not originBlock.same_shape(descBlock):	
+		originBlock = originBlock.rotate
+		commands.append('rotate')
+	other_commands = get_path(originBlock,descBlock)
+	commands.extend(other_commands)
+	commands.append('drop')
+	return commands
+
+  def get_path(originBlock,descBlock):
+	previous = descBlock.up()
+	commands=getCommands(originBlock,previous,'down')
+	if not commands:
+		previous = descBlock.right()
+		commands = getCommands(originBlock,previous,'left')
+		if not commands:
+			previous = descBlock.left()
+			commands = getCommands(originBlock,previous,'right')
+	return commands
+
+  def getCommands(originBlock,descBlock,command):
+	if check(previous):
+		commands.append('down')
+		if originBlock.same_center(previous):
+			return commands #Get a valid path
+		else:
+			nextCommands = get_path(originBlock,previous)
+			if nextCommands:
+				return commans.extend(nextCommands)
+			else:
+				return []
+	else:
+		return []
+
+  def append_left_right(commands,direction,count):
+	for i in xrange(count):
+		commands.append(direction)
+	return commands
 
 if __name__ == '__main__':
   if len(sys.argv) == 3:
